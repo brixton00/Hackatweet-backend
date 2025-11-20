@@ -26,13 +26,19 @@ router.post("/signup", (req, res) => {
           token: uid2(32),
         });
 
-        newUser.save().then((newSavedUser) => {
-          res.json({
-            result: true,
-            token: newSavedUser.token,
-            user: newSavedUser,
+        newUser
+          .save()
+          .then((newSavedUser) => {
+            res.json({
+              result: true,
+              token: newSavedUser.token,
+              user: newSavedUser,
+            });
+          })
+          .catch((err) => {
+            console.error(err); // Affiche l'erreur dans le terminal
+            res.json({ result: false, error: "Database error check logs" });
           });
-        });
       }
     }
   );
