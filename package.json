@@ -1,0 +1,22 @@
+{
+  "name": "Hackatweet-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/brixton00/Hackatweet-backend.git",
+  "author": "HrodWolfDev <102832449+HrodWolfS@users.noreply.github.com>",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "mongoose": "^8.20.0",
+    "uid2": "^1.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  }
+}
