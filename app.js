@@ -20,6 +20,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+app.use((req, res, next) => {
+  console.log("--- REQUÊTE REÇUE ---");
+  console.log("URL:", req.url);
+  console.log("Headers:", req.headers["content-type"]); // Doit afficher 'application/json'
+  console.log("Body:", req.body); // Si undefined, le format est mauvais
+  next();
+});
+
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/tweets", tweetsRouter);

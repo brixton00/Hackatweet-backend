@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
 const User = require("../models/users");
 const Tweet = require("../models/tweets");
 
@@ -30,10 +31,16 @@ router.post("/", (req, res) => {
       return res.json({ result: false, error: "Tweet too long" });
     }
 
+    const normalizeHashtag = (tag) =>
+      (tag || "").toString().trim().replace(/^#/, "").toLowerCase();
+    const sanitizedTags = Array.isArray(hashtags)
+      ? hashtags.map(normalizeHashtag).filter(Boolean)
+      : [];
+
     const newTweet = new Tweet({
       user: user._id,
       tweet,
-      hashtags: hashtags || [],
+      hashtags: sanitizedTags,
     });
 
     newTweet.save().then((savedTweet) => {
@@ -49,6 +56,10 @@ router.delete("/:id", (req, res) => {
 
   if (!token) {
     return res.json({ result: false, error: "Missing token" });
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(tweetId)) {
+    return res.json({ result: false, error: "Invalid tweet id" });
   }
 
   User.findOne({ token: token }).then((user) => {
@@ -74,12 +85,25 @@ router.delete("/:id", (req, res) => {
 
 //GET /hashtags/:tag
 router.get("/hashtags/:tag", (req, res) => {
-  const hashtag = req.params.tag;
+  const rawTag = req.params.tag;
+  const tag = (rawTag || "").replace(/^#/, "").toLowerCase().trim();
 
-  Tweet.find({ hashtags: hashtag })
+  if (!tag) {
+    return res.json({ result: true, tweets: [] });
+  }
+
+  const escapedTag = tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // escape regex meta chars
+
+  Tweet.find({
+    hashtags: { $regex: `^#?${escapedTag}$`, $options: "i" },
+  })
     .populate("user")
     .sort({ createdAt: -1 })
     .then((tweets) => {
+      if (!tweets || tweets.length === 0) {
+        return res.json({ result: false, error: "No tweets found", tweets: [] });
+      }
+
       res.json({ result: true, tweets });
     });
 });
@@ -91,6 +115,10 @@ router.post("/:id/like", (req, res) => {
 
   if (!token) {
     return res.json({ result: false, error: "Missing token" });
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(tweetId)) {
+    return res.json({ result: false, error: "Invalid tweet id" });
   }
 
   User.findOne({ token: token }).then((user) => {
